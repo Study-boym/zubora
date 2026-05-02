@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1日の時間配分 ダッシュボード</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F3EE;
+    --surface: #FFFFFF;
+    --surface2: #F0EDE6;
+    --border: rgba(0,0,0,0.08);
+    --text-primary: #1A1815;
+    --text-secondary: #6B6760;
+    --text-muted: #9B9890;
+    --accent: #2A2420;
+
+    --c-sleep: #0D5C47;
+    --c-screen: #4A3FC7;
+    --c-work: #C4830A;
+    --c-meal: #9B5E0A;
+    --c-chore: #C4603A;
+    --c-ambig: #A8A5A0;
+
+    --badge-measured-bg: #D6EFE7;
+    --badge-measured-text: #0D5C47;
+    --badge-survey-bg: #FAE8C0;
+    --badge-survey-text: #7A4E06;
+    --badge-ambig-bg: #E8E6E0;
+    --badge-ambig-text: #5A5856;
+
+    --radius: 12px;
+    --radius-sm: 6px;
+  }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  .page-header {
+    max-width: 860px;
+    margin: 0 auto 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    margin-bottom: 0.35rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.02em;
+  }
+
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 1rem;
+    align-items: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 3px 10px 3px 7px;
+    border-radius: 20px;
+  }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .badge-measured { background: var(--badge-measured-bg); color: var(--badge-measured-text); }
+  .badge-survey    { background: var(--badge-survey-bg);  color: var(--badge-survey-text); }
+  .badge-ambig     { background: var(--badge-ambig-bg);   color: var(--badge-ambig-text); }
+
+  .grid {
+    max-width: 860px;
+    margin: 0 auto;
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1.75rem;
+  }
+
+  .card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    color: var(--text-primary);
+  }
+
+  .card-note {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+    line-height: 1.6;
+  }
+
+  /* --- Chart 1: 24h donut --- */
+  .donut-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .donut-wrap {
+    position: relative;
+    width: 260px;
+    height: 260px;
+  }
+
+  .legend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid transparent;
+    transition: background 0.15s;
+  }
+
+  .legend-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .legend-swatch {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .legend-label {
+    font-size: 0.8rem;
+    color: var(--text-primary);
+  }
+
+  .legend-badge {
+    font-size: 0.65rem;
+    font-weight: 500;
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+
+  .legend-time {
+    font-size: 0.82rem;
+    font-weight: 500;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-primary);
+  }
+
+  .legend-pct {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    margin-left: 6px;
+  }
+
+  /* --- Chart 2: breakdown --- */
+  .breakdown-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .donut-wrap2 {
+    position: relative;
+    width: 100%;
+    height: 240px;
+  }
+
+  .bar-wrap {
+    position: relative;
+    width: 100%;
+    height: 240px;
+  }
+
+  .legend-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .legend-inline-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+  }
+
+  .legend-inline-swatch {
+    width: 9px; height: 9px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* --- Sources --- */
+  .sources-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1.5rem 1.75rem;
+  }
+
+  .sources-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .source-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .source-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .source-num {
+    font-size: 0.7rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-muted);
+    width: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .source-body { flex: 1; }
+
+  .source-name {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+
+  .source-desc {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    line-height: 1.5;
+  }
+
+  .source-link {
+    font-size: 0.7rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--c-screen);
+    text-decoration: none;
+    word-break: break-all;
+  }
+  .source-link:hover { text-decoration: underline; }
+
+  .source-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 500;
+    padding: 1px 7px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  .footnote {
+    max-width: 860px;
+    margin: 1rem auto 0;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  @media (max-width: 600px) {
+    .donut-layout { grid-template-columns: 1fr; }
+    .donut-wrap { width: 100%; height: 240px; }
+    .breakdown-layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="page-title">日本人の1日の時間配分</div>
+  <div class="page-subtitle">Sleep & Screen Time: measured data &nbsp;/&nbsp; Others: survey-based reference</div>
+  <div class="badge-row">
+    <span class="badge badge-measured"><span class="badge-dot" style="background:var(--badge-measured-text)"></span>実測・信頼度：高（睡眠・スクリーンタイム）</span>
+    <span class="badge badge-survey"><span class="badge-dot" style="background:var(--badge-survey-text)"></span>調査値・参考（食事・仕事・家事 ／ 総務省アンケート）</span>
+    <span class="badge badge-ambig"><span class="badge-dot" style="background:var(--badge-ambig-text)"></span>不明瞭・曖昧（残り時間）</span>
+  </div>
+</header>
+
+<div class="grid">
+
+  <!-- Chart 1 -->
+  <div class="card">
+    <div class="card-title">1日24時間の配分</div>
+    <div class="card-note">
+      ※ スクリーンタイムは仕事・家事中と並行利用するため他区分と重複があります。円グラフでは重複を除いた「純粋なスクリーン専用時間（約3h35m）」で表示し、実際の合計値を右欄に記載しています。
+    </div>
+    <div class="donut-layout">
+      <div class="donut-wrap">
+        <canvas id="dayDonut" role="img" aria-label="1日24時間の配分円グラフ">睡眠461分, スクリーンタイム215分, 仕事364分, 食事120分, 家事95分, 残り185分</canvas>
+      </div>
+      <div class="legend-list">
+        <div class="legend-item" style="border-left-color:var(--c-sleep)">
+          <div class="legend-left">
+            <span class="legend-swatch" style="background:var(--c-sleep)"></span>
+            <span class="legend-label">睡眠</span>
+            <span class="legend-badge badge-measured">実測</span>
+          </div>
+          <div>
+            <span class="legend-time">7h 41m</span><span class="legend-pct">32%</span>
+          </div>
+        </div>
+        <div class="legend-item" style="border-left-color:var(--c-screen)">
+          <div class="legend-left">
+            <span class="legend-swatch" style="background:var(--c-screen)"></span>
+            <span class="legend-label">スクリーンタイム</span>
+            <span class="legend-badge badge-measured">実測</span>
+          </div>
+          <div>
+            <span class="legend-time">5h 30m</span><span class="legend-pct">23%</span>
+          </div>
+        </div>
+        <div class="legend-item" style="border-left-color:var(--c-work)">
+          <div class="legend-left">
+            <span class="legend-swatch" style="background:var(--c-work)"></span>
+            <span class="legend-label">仕事・学校</span>
+            <span class="legend-badge badge-survey">調査値</span>
+          </div>
+          <div>
+            <span class="legend-time">6h 04m</span><span class="legend-pct">25%</span>
+          </div>
+        </div>
+        <div class="legend-item" style="border-left-color:var(--c-meal)">
+          <div class="legend-left">
+            <span class="legend-swatch" style="background:var(--c-meal)"></span>
+            <span class="legend-label">食事・身支度</span>
+            <span class="legend-badge badge-survey">調査値</span>
+          </div>
+          <div>
+            <span class="legend-time">2h 00m</span><span class="legend-pct">8%</span>
+          </div>
+        </div>
+        <div class="legend-item" style="border-left-color:var(--c-chore)">
+          <div class="legend-left">
+            <span class="legend-swatch" style="background:var(--c-chore)"></span>
+            <span class="legend-label">家事・育児</span>
+            <span class="legend-badge badge-survey">調査値</span>
+          </div>
+          <div>
+            <span class="legend-time">1h 35m</span><span class="legend-pct">7%</span>
+          </div>
+        </div>
+        <div class="legend-item" style="border-left-color:var(--c-ambig)">
+          <div class="legend-left">
+            <span class="legend-swatch" style="background:var(--c-ambig)"></span>
+            <span class="legend-label">残り（曖昧）</span>
+            <span class="legend-badge badge-ambig">不明瞭</span>
+          </div>
+          <div>
+            <span class="legend-time">〜1h 10m</span><span class="legend-pct">5%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart 2 -->
+  <div class="card">
+    <div class="card-title">スクリーンタイム 5h30m の内訳</div>
+    <div class="card-note">
+      総務省メディア調査（令和6年度）・DataReportal 2024・Mikke調査をもとに推計。仕事中・家事中の「ながら利用」を含む。
+    </div>
+    <div class="breakdown-layout">
+      <div>
+        <div class="legend-inline">
+          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#4A3FC7"></span>SNS・メッセージ 27%</span>
+          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#C4503A"></span>動画視聴 23%</span>
+          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#1D9E75"></span>ウェブ閲覧 18%</span>
+          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#2E7FD4"></span>ゲーム 12%</span>
+          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#C4830A"></span>仕事・学習 13%</span>
+          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#A8A5A0"></span>その他 7%</span>
+        </div>
+        <div class="donut-wrap2">
+          <canvas id="stDonut" role="img" aria-label="スクリーンタイム内訳円グラフ">SNS90分, 動画75分, ウェブ60分, ゲーム40分, 仕事学習43分, その他22分</canvas>
+        </div>
+      </div>
+      <div>
+        <div class="legend-inline">
+          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#4A3FC7"></span>分 / 日</span>
+        </div>
+        <div class="bar-wrap">
+          <canvas id="stBar" role="img" aria-label="スクリーンタイム内訳棒グラフ（分）">SNS90分, 動画75分, ウェブ60分, 仕事学習43分, ゲーム40分, その他22分</canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sources -->
+  <div class="sources-card">
+    <div class="sources-title">参考資料・出典</div>
+    <div class="source-list">
+
+      <div class="source-item">
+        <div class="source-num">01</div>
+        <div class="source-body">
+          <div class="source-name">総務省統計局「社会生活基本調査（令和3年）」
+            <span class="source-tag badge-survey">調査値</span>
+          </div>
+          <div class="source-desc">睡眠・仕事・食事・家事など1日の生活時間配分。5年ごとに実施される基幹統計。</div>
+          <a class="source-link" href="https://www.stat.go.jp/data/shakai/2021/kekka.html" target="_blank">https://www.stat.go.jp/data/shakai/2021/kekka.html</a>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="source-item">
+        <div class="source-num">02</div>
+        <div class="source-body">
+          <div class="source-name">総務省情報通信政策研究所「情報通信メディアの利用時間と情報行動に関する調査（令和6年度）」
+            <span class="source-tag badge-survey">調査値</span>
+          </div>
+          <div class="source-desc">13〜79歳1,800人を対象に、ネット・テレビ・SNSなどメディア別利用時間を日記式で計測。2024年12月調査。</div>
+          <a class="source-link" href="https://www.soumu.go.jp/main_content/001017241.pdf" target="_blank">https://www.soumu.go.jp/main_content/001017241.pdf</a>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="source-item">
+        <div class="source-num">03</div>
+        <div class="source-body">
+          <div class="source-name">内閣府「国民生活に関する世論調査（令和6年8月）」
+            <span class="source-tag badge-survey">調査値</span>
+          </div>
+          <div class="source-desc">自由時間の過ごし方・生活満足度・時間のゆとりなどを調査。</div>
+          <a class="source-link" href="https://survey.gov-online.go.jp/living/202412/r06/r06-life/" target="_blank">https://survey.gov-online.go.jp/living/202412/r06/r06-life/</a>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="source-item">
+        <div class="source-num">04</div>
+        <div class="source-body">
+          <div class="source-name">Mikke（株式会社PR TIMES）「スマートフォン（iPhone）利用に関する生活者実態調査」
+            <span class="source-tag badge-measured">実測</span>
+          </div>
+          <div class="source-desc">iPhoneユーザー1,300名のスクリーンタイム画面キャプチャを実際に収集・集計。意識と実態の差（過小評価率81.9%）を明らかにした調査（2021年）。</div>
+          <a class="source-link" href="https://prtimes.jp/main/html/rd/p/000001076.000000112.html" target="_blank">https://prtimes.jp/main/html/rd/p/000001076.000000112.html</a>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="source-item">
+        <div class="source-num">05</div>
+        <div class="source-body">
+          <div class="source-name">DataReportal「Digital 2024 Global Overview Report」
+            <span class="source-tag badge-survey">調査値</span>
+          </div>
+          <div class="source-desc">世界のインターネット・SNS・モバイル利用状況の年次レポート。SNS利用時間・アプリ別内訳などを掲載。</div>
+          <a class="source-link" href="https://datareportal.com/reports/digital-2024-global-overview-report" target="_blank">https://datareportal.com/reports/digital-2024-global-overview-report</a>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="source-item">
+        <div class="source-num">06</div>
+        <div class="source-body">
+          <div class="source-name">NTTドコモ モバイル社会研究所「2024年一般向けモバイル動向調査」
+            <span class="source-tag badge-survey">調査値</span>
+          </div>
+          <div class="source-desc">15〜79歳を対象にICT機器のインターネット利用時間を職業・年代別に調査（2025年2月公表）。</div>
+          <a class="source-link" href="https://www.moba-ken.jp/project/lifestyle/20250221.html" target="_blank">https://www.moba-ken.jp/project/lifestyle/20250221.html</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<p class="footnote">
+  ※ データはすべて日本の成人（全年代平均）を対象とした推計値です。年代・性別・職業によって大きく異なります。<br>
+  ※ スクリーンタイムは仕事・家事中のながら利用を含むため、他の区分と重複があります。<br>
+  ※ 作成日：2025年5月
+</p>
+
+<script>
+const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const tc = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)';
+const gc = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+const borderC = isDark ? '#1a1a18' : '#ffffff';
+
+new Chart(document.getElementById('dayDonut'), {
+  type: 'doughnut',
+  data: {
+    labels: ['睡眠', 'スクリーンタイム（純粋）', '仕事・学校', '食事・身支度', '家事・育児', '残り（曖昧）'],
+    datasets: [{
+      data: [461, 215, 364, 120, 95, 185],
+      backgroundColor: ['#0D5C47','#4A3FC7','#C4830A','#9B5E0A','#C4603A','#A8A5A0'],
+      borderWidth: 3,
+      borderColor: borderC
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '58%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const m = ctx.parsed;
+            const h = Math.floor(m / 60);
+            const min = m % 60;
+            const pct = Math.round(m / 1440 * 100);
+            return ' ' + ctx.label + ': ' + h + 'h ' + (min < 10 ? '0' : '') + min + 'm (' + pct + '%)';
+          }
+        }
+      }
+    }
+  }
+});
+
+new Chart(document.getElementById('stDonut'), {
+  type: 'doughnut',
+  data: {
+    labels: ['SNS・メッセージ', '動画視聴', 'ウェブ閲覧', 'ゲーム', '仕事・学習', 'その他'],
+    datasets: [{
+      data: [90, 75, 60, 40, 43, 22],
+      backgroundColor: ['#4A3FC7','#C4503A','#1D9E75','#2E7FD4','#C4830A','#A8A5A0'],
+      borderWidth: 3,
+      borderColor: borderC
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '55%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ' ' + ctx.label + ': ' + ctx.parsed + '分（' + Math.round(ctx.parsed / 330 * 100) + '%）'
+        }
+      }
+    }
+  }
+});
+
+new Chart(document.getElementById('stBar'), {
+  type: 'bar',
+  data: {
+    labels: ['SNS・\nメッセージ', '動画視聴', 'ウェブ閲覧', '仕事・学習', 'ゲーム', 'その他'],
+    datasets: [{
+      data: [90, 75, 60, 43, 40, 22],
+      backgroundColor: ['#4A3FC7','#C4503A','#1D9E75','#C4830A','#2E7FD4','#A8A5A0'],
+      borderRadius: 5,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.y + '分 / 日' } }
+    },
+    scales: {
+      x: { ticks: { color: tc, font: { size: 10 }, maxRotation: 0 }, grid: { display: false } },
+      y: { ticks: { color: tc, font: { size: 10 }, callback: v => v + '分' }, grid: { color: gc } }
+    }
+  }
+});
+</script>
+</body>
+</html>
