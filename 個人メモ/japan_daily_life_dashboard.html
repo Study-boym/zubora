@@ -22,6 +22,7 @@
 
     --c-sleep: #0D5C47;
     --c-screen: #4A3FC7;
+    --c-tv: #B5451B;
     --c-work: #C4830A;
     --c-meal: #9B5E0A;
     --c-chore: #C4603A;
@@ -340,11 +341,11 @@
   <div class="card">
     <div class="card-title">1日24時間の配分</div>
     <div class="card-note">
-      ※ スクリーンタイムは仕事・家事中と並行利用するため他区分と重複があります。円グラフでは重複を除いた「純粋なスクリーン専用時間（約3h35m）」で表示し、実際の合計値を右欄に記載しています。
+      ※ スマートフォン・PCとテレビを別区分で表示。スマートフォン・PCは総務省令和6年度インターネット利用時間（全年代平均、日記式実測）。テレビは令和5年度調査の20〜40代平均（20代54分・30代95分・40代130分）。
     </div>
     <div class="donut-layout">
       <div class="donut-wrap">
-        <canvas id="dayDonut" role="img" aria-label="1日24時間の配分円グラフ">睡眠461分, スクリーンタイム215分, 仕事364分, 食事120分, 家事95分, 残り185分</canvas>
+        <canvas id="dayDonut" role="img" aria-label="1日24時間の配分円グラフ">睡眠474分, スマートフォン・PC182分, テレビ93分, 仕事364分, 食事120分, 家事95分, 残り112分</canvas>
       </div>
       <div class="legend-list">
         <div class="legend-item" style="border-left-color:var(--c-sleep)">
@@ -354,17 +355,27 @@
             <span class="legend-badge badge-measured">実測</span>
           </div>
           <div>
-            <span class="legend-time">7h 41m</span><span class="legend-pct">32%</span>
+            <span class="legend-time">7h 54m</span><span class="legend-pct">33%</span>
           </div>
         </div>
         <div class="legend-item" style="border-left-color:var(--c-screen)">
           <div class="legend-left">
             <span class="legend-swatch" style="background:var(--c-screen)"></span>
-            <span class="legend-label">スクリーンタイム</span>
+            <span class="legend-label">スマートフォン・PC</span>
             <span class="legend-badge badge-measured">実測</span>
           </div>
           <div>
-            <span class="legend-time">5h 30m</span><span class="legend-pct">23%</span>
+            <span class="legend-time">3h 02m</span><span class="legend-pct">13%</span>
+          </div>
+        </div>
+        <div class="legend-item" style="border-left-color:var(--c-tv)">
+          <div class="legend-left">
+            <span class="legend-swatch" style="background:var(--c-tv)"></span>
+            <span class="legend-label">テレビ <small style="font-size:0.65rem;color:var(--text-muted)">20〜40代</small></span>
+            <span class="legend-badge badge-survey">調査値</span>
+          </div>
+          <div>
+            <span class="legend-time">1h 33m</span><span class="legend-pct">6%</span>
           </div>
         </div>
         <div class="legend-item" style="border-left-color:var(--c-work)">
@@ -404,7 +415,7 @@
             <span class="legend-badge badge-ambig">不明瞭</span>
           </div>
           <div>
-            <span class="legend-time">〜1h 10m</span><span class="legend-pct">5%</span>
+            <span class="legend-time">〜1h 52m</span><span class="legend-pct">8%</span>
           </div>
         </div>
       </div>
@@ -413,22 +424,21 @@
 
   <!-- Chart 2 -->
   <div class="card">
-    <div class="card-title">スクリーンタイム 5h30m の内訳</div>
+    <div class="card-title">スマートフォン・PC スクリーンタイム 3h02m の内訳</div>
     <div class="card-note">
-      総務省メディア調査（令和6年度）・DataReportal 2024・Mikke調査をもとに推計。仕事中・家事中の「ながら利用」を含む。
+      総務省令和6年度メディア調査（インターネット利用時間 181.8分/日）をベースに、DataReportal 2024 Japan（SNS 53分）を活用して推計。テレビ視聴は含まない。
     </div>
     <div class="breakdown-layout">
       <div>
         <div class="legend-inline">
-          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#4A3FC7"></span>SNS・メッセージ 27%</span>
-          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#C4503A"></span>動画視聴 23%</span>
-          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#1D9E75"></span>ウェブ閲覧 18%</span>
-          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#2E7FD4"></span>ゲーム 12%</span>
-          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#C4830A"></span>仕事・学習 13%</span>
-          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#A8A5A0"></span>その他 7%</span>
+          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#C4503A"></span>動画配信 30%</span>
+          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#4A3FC7"></span>SNS・メッセージ 29%</span>
+          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#1D9E75"></span>ウェブ閲覧 19%</span>
+          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#C4830A"></span>仕事・学習 14%</span>
+          <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#A8A5A0"></span>ゲーム・その他 8%</span>
         </div>
         <div class="donut-wrap2">
-          <canvas id="stDonut" role="img" aria-label="スクリーンタイム内訳円グラフ">SNS90分, 動画75分, ウェブ60分, ゲーム40分, 仕事学習43分, その他22分</canvas>
+          <canvas id="stDonut" role="img" aria-label="スマートフォン・PCスクリーンタイム内訳円グラフ">動画配信55分, SNS53分, ウェブ閲覧35分, 仕事学習25分, ゲーム・その他14分</canvas>
         </div>
       </div>
       <div>
@@ -436,7 +446,7 @@
           <span class="legend-inline-item"><span class="legend-inline-swatch" style="background:#4A3FC7"></span>分 / 日</span>
         </div>
         <div class="bar-wrap">
-          <canvas id="stBar" role="img" aria-label="スクリーンタイム内訳棒グラフ（分）">SNS90分, 動画75分, ウェブ60分, 仕事学習43分, ゲーム40分, その他22分</canvas>
+          <canvas id="stBar" role="img" aria-label="スマートフォン・PCスクリーンタイム内訳棒グラフ（分）">動画配信55分, SNS53分, ウェブ閲覧35分, 仕事学習25分, ゲーム・その他14分</canvas>
         </div>
       </div>
     </div>
@@ -453,7 +463,7 @@
           <div class="source-name">総務省統計局「社会生活基本調査（令和3年）」
             <span class="source-tag badge-survey">調査値</span>
           </div>
-          <div class="source-desc">睡眠・仕事・食事・家事など1日の生活時間配分。5年ごとに実施される基幹統計。</div>
+          <div class="source-desc">睡眠・仕事・食事・家事など1日の生活時間配分。5年ごとに実施される基幹統計。令和3年（2021年）全員平均の睡眠時間は7時間54分。</div>
           <a class="source-link" href="https://www.stat.go.jp/data/shakai/2021/kekka.html" target="_blank">https://www.stat.go.jp/data/shakai/2021/kekka.html</a>
         </div>
       </div>
@@ -529,9 +539,9 @@
 </div>
 
 <p class="footnote">
-  ※ データはすべて日本の成人（全年代平均）を対象とした推計値です。年代・性別・職業によって大きく異なります。<br>
-  ※ スクリーンタイムは仕事・家事中のながら利用を含むため、他の区分と重複があります。<br>
-  ※ 作成日：2025年5月
+  ※ スマートフォン・PCは全年代平均（総務省令和6年度）、テレビは20〜40代平均（総務省令和5年度）。年代・性別・職業によって大きく異なります。<br>
+  ※ スマートフォン・PCとテレビは独立した区分として表示しています。<br>
+  ※ 作成日：2025年5月（2026年5月データ確認・修正）
 </p>
 
 <script>
@@ -543,10 +553,10 @@ const borderC = isDark ? '#1a1a18' : '#ffffff';
 new Chart(document.getElementById('dayDonut'), {
   type: 'doughnut',
   data: {
-    labels: ['睡眠', 'スクリーンタイム（純粋）', '仕事・学校', '食事・身支度', '家事・育児', '残り（曖昧）'],
+    labels: ['睡眠', 'スマートフォン・PC', 'テレビ', '仕事・学校', '食事・身支度', '家事・育児', '残り（曖昧）'],
     datasets: [{
-      data: [461, 215, 364, 120, 95, 185],
-      backgroundColor: ['#0D5C47','#4A3FC7','#C4830A','#9B5E0A','#C4603A','#A8A5A0'],
+      data: [474, 182, 93, 364, 120, 95, 112],
+      backgroundColor: ['#0D5C47','#4A3FC7','#B5451B','#C4830A','#9B5E0A','#C4603A','#A8A5A0'],
       borderWidth: 3,
       borderColor: borderC
     }]
@@ -575,10 +585,10 @@ new Chart(document.getElementById('dayDonut'), {
 new Chart(document.getElementById('stDonut'), {
   type: 'doughnut',
   data: {
-    labels: ['SNS・メッセージ', '動画視聴', 'ウェブ閲覧', 'ゲーム', '仕事・学習', 'その他'],
+    labels: ['動画配信', 'SNS・メッセージ', 'ウェブ閲覧', '仕事・学習', 'ゲーム・その他'],
     datasets: [{
-      data: [90, 75, 60, 40, 43, 22],
-      backgroundColor: ['#4A3FC7','#C4503A','#1D9E75','#2E7FD4','#C4830A','#A8A5A0'],
+      data: [55, 53, 35, 25, 14],
+      backgroundColor: ['#C4503A','#4A3FC7','#1D9E75','#C4830A','#A8A5A0'],
       borderWidth: 3,
       borderColor: borderC
     }]
@@ -591,7 +601,7 @@ new Chart(document.getElementById('stDonut'), {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: ctx => ' ' + ctx.label + ': ' + ctx.parsed + '分（' + Math.round(ctx.parsed / 330 * 100) + '%）'
+          label: ctx => ' ' + ctx.label + ': ' + ctx.parsed + '分（' + Math.round(ctx.parsed / 182 * 100) + '%）'
         }
       }
     }
@@ -601,10 +611,10 @@ new Chart(document.getElementById('stDonut'), {
 new Chart(document.getElementById('stBar'), {
   type: 'bar',
   data: {
-    labels: ['SNS・\nメッセージ', '動画視聴', 'ウェブ閲覧', '仕事・学習', 'ゲーム', 'その他'],
+    labels: ['動画配信', 'SNS・\nメッセージ', 'ウェブ閲覧', '仕事・学習', 'ゲーム・\nその他'],
     datasets: [{
-      data: [90, 75, 60, 43, 40, 22],
-      backgroundColor: ['#4A3FC7','#C4503A','#1D9E75','#C4830A','#2E7FD4','#A8A5A0'],
+      data: [55, 53, 35, 25, 14],
+      backgroundColor: ['#C4503A','#4A3FC7','#1D9E75','#C4830A','#A8A5A0'],
       borderRadius: 5,
       borderSkipped: false
     }]
